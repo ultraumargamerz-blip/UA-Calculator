@@ -1,0 +1,969 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>UA Calculator — Ultra Advance Calculator</title>
+<style>
+  /* ---------- Theme & base ---------- */
+  :root{
+    --bg:#f2f6ff; --panel:#ffffff; --accent:#007bff; --text:#111; --btn:#f1f5ff;
+    --glass-bg: rgba(255,255,255,0.12);
+    --font-stack: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  }
+  .theme-default{ --bg:#f2f6ff; --panel:#fff; --accent:#007bff; --text:#111; --btn:#f1f5ff; --glass-bg: rgba(255,255,255,0.12); }
+  .theme-hacker{ --bg:#010203; --panel:#04120a; --accent:#00ff5a; --text:#c8ffd0; --btn:rgba(0,255,90,0.06); --glass-bg: rgba(0,0,0,0.28); }
+  .theme-iphone{ --bg:#f0f1f3; --panel:#ffffff; --accent:#ff9500; --text:#0b1226; --btn:#f6f7f9; --glass-bg: rgba(255,255,255,0.6); }
+  .theme-glass{ --bg:#e9f2ff; --panel: rgba(255,255,255,0.08); --accent:#4da3ff; --text:#0b1226; --btn: rgba(255,255,255,0.06); --glass-bg: rgba(255,255,255,0.08); }
+  .theme-neon{ --bg:#02040f; --panel:#061028; --accent:#00f5ff; --text:#c8ffee; --btn:#071824; --glass-bg: rgba(255,255,255,0.02); }
+  .theme-minecraft{ --bg:#d6d6c2; --panel:#efe6d6; --accent:#6aa84f; --text:#123510; --btn:#c9b38b; --glass-bg: rgba(255,255,255,0.06); }
+  .theme-future{ --bg:#071428; --panel:#08121f; --accent:#7c5cff; --text:#cfc9ff; --btn:#0b1230; --glass-bg: rgba(255,255,255,0.02); }
+
+  html,body{height:100%;margin:0;font-family:var(--font-stack);background:var(--bg);color:var(--text);display:flex;align-items:center;justify-content:center;padding:18px;}
+  .calc-wrap{width:420px;max-width:96vw;background:var(--panel);border-radius:16px;padding:12px;box-shadow:0 12px 40px rgba(2,6,23,0.12);position:relative;overflow:visible;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .title{font-weight:800;color:var(--accent);letter-spacing:.6px;font-size:18px}
+  .menu-btn{background:none;border:none;font-size:22px;color:var(--accent);cursor:pointer}
+  .menu-popup{position:absolute;right:12px;top:48px;background:var(--panel);border-radius:10px;padding:8px;box-shadow:0 8px 26px rgba(0,0,0,0.12);display:none;z-index:90;width:260px}
+  .menu-popup button{display:block;width:100%;padding:10px;border-radius:8px;border:none;background:transparent;color:var(--text);text-align:left;margin:4px 0;cursor:pointer;font-weight:700}
+  .menu-popup button:hover{background:rgba(0,0,0,0.04)}
+
+  .display{width:100%;height:72px;border-radius:10px;padding:12px;background:var(--glass-bg);font-size:26px;text-align:right;overflow:auto;color:var(--accent);box-sizing:border-box;font-family:var(--font-stack);font-weight:700}
+  .sub{font-size:12px;color:rgba(0,0,0,0.45);text-align:right;margin-top:6px}
+
+  .buttons-area{position:relative;width:100%;height:520px;margin-top:12px;border-radius:12px;background:transparent}
+  .btn{
+    position:absolute; width:84px; height:56px; border-radius:12px; border:none; cursor:pointer;
+    display:flex;align-items:center;justify-content:center; font-weight:800; font-size:18px;
+    background:var(--btn); color:var(--text); box-shadow:0 8px 20px rgba(2,6,23,0.08);
+    user-select:none; touch-action:none;
+  }
+  .btn.operator{color:var(--accent)}
+  .btn.equal{background:var(--accent); color:#fff}
+  .btn.clear{background:#ff4d4d;color:#fff}
+  .btn.dragging{opacity:0.8;transform:scale(1.03);z-index:9999;border:2px dashed rgba(0,0,0,0.12)}
+  .btn.iphone{border-radius:999px; box-shadow:0 6px 12px rgba(0,0,0,0.08);}
+
+  .control-row{display:flex;gap:8px;justify-content:flex-end;margin-top:8px;display:none}
+  .control-row.show{display:flex}
+  .control-row button{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+  .control-save{background:var(--accent);color:#fff}
+  .control-reset{background:#ddd;color:#111}
+  .control-add{background:#34a853;color:#fff}
+  .control-remove{background:#e67e22;color:#fff}
+  .control-rename{background:#6c5ce7;color:#fff}
+  .control-edit{background:#2b90d9;color:#fff}
+
+  .adv-toggle{margin-top:8px;display:flex;justify-content:flex-end}
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.48);z-index:200;align-items:center;justify-content:center}
+  .popup{background:var(--panel);padding:14px;border-radius:12px;width:360px;box-shadow:0 16px 40px rgba(0,0,0,0.3)}
+  .popup h3{margin:0 0 8px;color:var(--accent)}
+  .popup button{margin-top:10px;padding:10px;border-radius:8px;border:none;background:var(--accent);color:#fff;cursor:pointer}
+  .row{display:flex;gap:8px;margin-top:10px}
+  input[type="text"], input[type="number"], select, textarea {width:100%; padding:8px;border-radius:8px;border:1px solid #ddd; box-sizing:border-box}
+
+  .chat-box{height:220px; overflow:auto; border:1px solid #eee; border-radius:8px; padding:8px; background:#fafafa;}
+  .chat-input{display:flex; gap:8px; margin-top:8px;}
+  .chat-input textarea{flex:1;resize:none;height:52px}
+  .small-note{font-size:12px;color:rgba(0,0,0,0.45);margin-top:6px}
+
+  /* responsive tweaks */
+  @media(max-width:460px){
+    .btn{width:72px;height:52px;font-size:16px}
+    .display{height:64px;font-size:22px}
+    .calc-wrap{width:96vw}
+  }
+</style>
+</head>
+<body>
+
+<div class="calc-wrap" id="calcRoot" role="application" aria-label="UA Calculator">
+  <div class="topbar">
+    <div class="title">UA Calculator</div>
+    <div>
+      <button id="menuBtn" class="menu-btn" aria-haspopup="true" aria-controls="menu">⋮</button>
+      <div id="menu" class="menu-popup" role="menu" aria-hidden="true">
+        <button id="historyBtn">📜 History</button>
+        <button id="clearHistoryBtn">🗑 Clear History</button>
+        <button id="themesBtn">🎨 Themes</button>
+        <button id="feedbackBtn">✉ Send Feedback</button>
+        <button id="helpBtn">❓ Help & Chat</button>
+        <button id="advancedEntryBtn">🔒 Advanced Mode</button>
+        <button id="customToggleBtn">⚙ Custom Controls: OFF</button>
+        <button id="currencyBtn">💱 Currency Converter</button>
+        <button id="unitBtn">📐 Unit Converter</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="display" class="display" role="status">0</div>
+  <div id="sub" class="sub"></div>
+
+  <div class="buttons-area" id="area" aria-live="polite"></div>
+
+  <div class="control-row" id="controls">
+    <button id="resetBtn" class="control-reset">Reset Layout</button>
+    <button id="saveBtn" class="control-save">Save Layout</button>
+    <!-- admin controls appended dynamically -->
+  </div>
+
+  <div class="adv-toggle">
+    <button id="toggleAdvBtn" style="padding:8px;border-radius:8px;border:none;cursor:pointer">Toggle Advanced</button>
+  </div>
+</div>
+
+<!-- overlays -->
+<div class="overlay" id="overlay"><div class="popup" id="popupContent"></div></div>
+
+<!-- currency -->
+<div class="overlay" id="currencyOverlay"><div class="popup" id="currencyPopup">
+  <h3>Currency Converter</h3>
+  <input id="curAmount" type="number" placeholder="Amount" />
+  <div class="row">
+    <select id="fromCur"></select>
+    <select id="toCur"></select>
+  </div>
+  <div class="row">
+    <button id="convBtn">Convert</button>
+    <button id="closeCur" style="background:#ddd;color:#111">Close</button>
+  </div>
+  <div id="curRes" style="margin-top:8px;font-weight:700"></div>
+</div></div>
+
+<!-- unit -->
+<div class="overlay" id="unitOverlay"><div class="popup" id="unitPopup">
+  <h3>Unit Converter</h3>
+  <div class="row">
+    <select id="unitCategory">
+      <option value="length">Length</option>
+      <option value="weight">Weight</option>
+      <option value="temperature">Temperature</option>
+      <option value="volume">Volume</option>
+      <option value="speed">Speed</option>
+      <option value="area">Area</option>
+      <option value="time">Time</option>
+    </select>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <input id="unitAmount" type="number" placeholder="Amount" />
+  </div>
+  <div class="row" style="margin-top:8px">
+    <select id="fromUnit"></select>
+    <select id="toUnit"></select>
+  </div>
+  <div class="row">
+    <button id="unitConvBtn">Convert</button>
+    <button id="closeUnit" style="background:#ddd;color:#111">Close</button>
+  </div>
+  <div id="unitRes" style="margin-top:8px;font-weight:700"></div>
+</div></div>
+
+<script>
+/* ---------------- State & constants ---------------- */
+const API_URL = "https://v6.exchangerate-api.com/v6/74e63dfb01cee56e37f76311/latest/USD";
+const GPLINK = "https://gplinks.co/MuCStB";
+const ADV_PASS = "22002211@@";    // advanced popup pass
+const UADMIN_CODE = "22112211L@@"; // Ultra Admin secret entered in chat
+
+const area = document.getElementById('area');
+const display = document.getElementById('display');
+const sub = document.getElementById('sub');
+const menuBtn = document.getElementById('menuBtn');
+const menu = document.getElementById('menu');
+const customToggleBtn = document.getElementById('customToggleBtn');
+const controls = document.getElementById('controls');
+const saveBtn = document.getElementById('saveBtn');
+const resetBtn = document.getElementById('resetBtn');
+const historyBtn = document.getElementById('historyBtn');
+const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+const themesBtn = document.getElementById('themesBtn');
+const feedbackBtn = document.getElementById('feedbackBtn');
+const helpBtn = document.getElementById('helpBtn');
+const currencyBtn = document.getElementById('currencyBtn');
+const unitBtn = document.getElementById('unitBtn');
+const advancedEntryBtn = document.getElementById('advancedEntryBtn');
+const overlay = document.getElementById('overlay');
+const popupContent = document.getElementById('popupContent');
+const currencyOverlay = document.getElementById('currencyOverlay');
+const fromCur = document.getElementById('fromCur');
+const toCur = document.getElementById('toCur');
+const curAmount = document.getElementById('curAmount');
+const convBtn = document.getElementById('convBtn');
+const closeCur = document.getElementById('closeCur');
+const curRes = document.getElementById('curRes');
+const toggleAdvBtn = document.getElementById('toggleAdvBtn');
+
+const unitOverlay = document.getElementById('unitOverlay');
+const unitCategory = document.getElementById('unitCategory');
+const unitAmount = document.getElementById('unitAmount');
+const fromUnit = document.getElementById('fromUnit');
+const toUnit = document.getElementById('toUnit');
+const unitConvBtn = document.getElementById('unitConvBtn');
+const closeUnit = document.getElementById('closeUnit');
+const unitRes = document.getElementById('unitRes');
+
+let customMode = false;
+let dragState = null;
+let historyArr = JSON.parse(localStorage.getItem('ua_history')||'[]');
+let degMode = true;
+let advancedShown = false;
+let adminUnlocked = localStorage.getItem('ua_admin') === '1'; // UAdmin flag (Ultra Advance Mode)
+let unlockedAdvanced = localStorage.getItem('ua_unlocked') === '1'; // regular Advanced
+
+/* ---------- default buttons config ---------- */
+const defaultCfg = [
+  {id:'ac', label:'AC', x:12, y:12, cls:'clear'},
+  {id:'percent', label:'%', x:108, y:12, cls:'operator'},
+  {id:'back', label:'⌫', x:204, y:12, cls:'operator'},
+  {id:'div', label:'÷', x:300, y:12, cls:'operator'},
+
+  {id:'b7', label:'7', x:12, y:82, cls:''},
+  {id:'b8', label:'8', x:108, y:82, cls:''},
+  {id:'b9', label:'9', x:204, y:82, cls:''},
+  {id:'mul', label:'×', x:300, y:82, cls:'operator'},
+
+  {id:'b4', label:'4', x:12, y:152, cls:''},
+  {id:'b5', label:'5', x:108, y:152, cls:''},
+  {id:'b6', label:'6', x:204, y:152, cls:''},
+  {id:'sub', label:'−', x:300, y:152, cls:'operator'},
+
+  {id:'b1', label:'1', x:12, y:222, cls:''},
+  {id:'b2', label:'2', x:108, y:222, cls:''},
+  {id:'b3', label:'3', x:204, y:222, cls:''},
+  {id:'add', label:'+', x:300, y:222, cls:'operator'},
+
+  {id:'b0', label:'0', x:12, y:292, cls:''},
+  {id:'b00', label:'00', x:108, y:292, cls:''},
+  {id:'eq', label:'=', x:204, y:292, cls:'equal'},
+  {id:'dot', label:'.', x:300, y:292, cls:'operator'},
+
+  // advanced (hidden until toggled)
+  {id:'fact', label:'!', x:12, y:362, cls:'adv'},
+  {id:'deg', label:'Deg', x:108, y:362, cls:'adv'},
+  {id:'sin', label:'sin', x:204, y:362, cls:'adv'},
+  {id:'cos', label:'cos', x:300, y:362, cls:'adv'},
+  {id:'tan', label:'tan', x:12, y:432, cls:'adv'},
+  {id:'inv', label:'Inv', x:108, y:432, cls:'adv'},
+  {id:'e', label:'e', x:204, y:432, cls:'adv'},
+  {id:'ln', label:'ln', x:300, y:432, cls:'adv'},
+  {id:'log', label:'log', x:12, y:502, cls:'adv'},
+  {id:'pow', label:'^', x:108, y:502, cls:'adv'},
+];
+
+/* ---------- build UI ---------- */
+function buildButtons(){
+  area.innerHTML = '';
+  let cfg = defaultCfg;
+  const saved = localStorage.getItem('ua_layout');
+  if(saved){
+    try{ const parsed = JSON.parse(saved); if(Array.isArray(parsed) && parsed.length) cfg = parsed; }catch(e){}
+  }
+  cfg.forEach(b=>{
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    if(b.cls) btn.classList.add(b.cls);
+    if(document.documentElement.classList.contains('theme-iphone')) btn.classList.add('iphone');
+    btn.id = b.id;
+    btn.textContent = b.label;
+    btn.style.left = (b.x)+'px';
+    btn.style.top = (b.y)+'px';
+    btn.dataset.role = b.cls || '';
+    btn.dataset.posX = b.x;
+    btn.dataset.posY = b.y;
+    btn.addEventListener('pointerdown', onPointerDown);
+    btn.addEventListener('click', onButtonClick);
+    area.appendChild(btn);
+  });
+  updateAdvancedVisibility();
+  if(adminUnlocked) ensureAdminUI();
+}
+
+/* pointer drag for custom controls */
+function onPointerDown(e){
+  if(!customMode) return;
+  e.preventDefault();
+  const el = e.currentTarget;
+  el.setPointerCapture(e.pointerId);
+  const rect = el.getBoundingClientRect();
+  const parentRect = area.getBoundingClientRect();
+  dragState = {
+    el,
+    offsetX: e.clientX - rect.left,
+    offsetY: e.clientY - rect.top,
+    parentLeft: parentRect.left,
+    parentTop: parentRect.top
+  };
+  el.classList.add('dragging');
+  window.addEventListener('pointermove', onPointerMove);
+  window.addEventListener('pointerup', onPointerUp);
+}
+function onPointerMove(e){
+  if(!dragState) return;
+  e.preventDefault();
+  const nx = e.clientX - dragState.parentLeft - dragState.offsetX;
+  const ny = e.clientY - dragState.parentTop - dragState.offsetY;
+  const parentRect = area.getBoundingClientRect();
+  const elRect = dragState.el.getBoundingClientRect();
+  const maxX = parentRect.width - elRect.width - 6;
+  const maxY = parentRect.height - elRect.height - 6;
+  const clampedX = Math.max(6, Math.min(maxX, nx));
+  const clampedY = Math.max(6, Math.min(maxY, ny));
+  dragState.el.style.left = clampedX + 'px';
+  dragState.el.style.top = clampedY + 'px';
+}
+function onPointerUp(e){
+  if(!dragState) return;
+  const el = dragState.el;
+  el.classList.remove('dragging');
+  const left = parseInt(el.style.left,10);
+  const top = parseInt(el.style.top,10);
+  el.dataset.posX = left;
+  el.dataset.posY = top;
+  window.removeEventListener('pointermove', onPointerMove);
+  window.removeEventListener('pointerup', onPointerUp);
+  dragState = null;
+}
+
+/* click behavior */
+function onButtonClick(e){
+  if(customMode) return; // when custom mode ON, don't handle actions
+  const id = e.currentTarget.id;
+  handleKey(id);
+}
+
+/* calculator logic */
+function handleKey(id){
+  if(id==='ac'){ display.textContent='0'; sub.textContent=''; return; }
+  if(id==='back'){ let t=display.textContent; display.textContent = t.length>1? t.slice(0,-1): '0'; return; }
+  if(id==='percent'){ try{ const val = Number(display.textContent)/100; display.textContent = String(val); }catch(e){display.textContent='Error'} return; }
+  if(id==='eq'){ evaluate(); return; }
+
+  if(id==='fact'){ try{ let n=Number(display.textContent); if(!Number.isInteger(n)||n<0){ display.textContent='Error'; return;} let r=1; for(let i=2;i<=n;i++) r*=i; display.textContent=String(r); }catch(e){display.textContent='Error'} return; }
+  if(id==='deg'){ degMode = !degMode; const btn=document.getElementById('deg'); if(btn) btn.textContent = degMode ? 'Deg' : 'Rad'; return; }
+  if(['sin','cos','tan'].includes(id)){ try{ let v=Number(display.textContent); if(degMode) v = v*Math.PI/180; let out=0; if(id==='sin') out=Math.sin(v); if(id==='cos') out=Math.cos(v); if(id==='tan') out=Math.tan(v); display.textContent = String(Number(out.toFixed(10))); }catch(e){display.textContent='Error'} return; }
+  if(id==='inv'){ const btn=document.getElementById('inv'); if(btn) btn.textContent = btn.textContent==='Inv' ? 'Inv✓' : 'Inv'; return; }
+  if(id==='e'){ display.textContent = String(Math.E); return; }
+  if(id==='ln'){ try{ display.textContent = String(Math.log(Number(display.textContent))); }catch(e){display.textContent='Error'} return; }
+  if(id==='log'){ try{ display.textContent = String(Math.log10 ? Math.log10(Number(display.textContent)) : Math.log(Number(display.textContent))/Math.LN10);}catch(e){display.textContent='Error'} return; }
+  if(id==='pow'){ display.textContent += '**'; return; }
+
+  // append numbers/operators
+  const btn = document.getElementById(id);
+  if(!btn) return;
+  const v = btn.textContent;
+  if(display.textContent === '0') display.textContent = v;
+  else display.textContent += v;
+}
+
+function evaluate(){
+  try{
+    const expr = display.textContent.replace(/×/g,'*').replace(/−/g,'-').replace(/÷/g,'/');
+    if(/[^0-9+\-*/().%eE\s*]/.test(expr)){ display.textContent='Error'; return; }
+    const res = Function('"use strict"; return ('+expr+')')();
+    display.textContent = (res===Infinity||res===-Infinity||isNaN(res))? 'Error' : String(res);
+    pushHistory(expr + ' = ' + display.textContent);
+  }catch(e){ display.textContent='Error'; }
+}
+function pushHistory(text){
+  historyArr.unshift(text);
+  if(historyArr.length>200) historyArr.pop();
+  localStorage.setItem('ua_history', JSON.stringify(historyArr));
+}
+
+/* ---------- Custom Controls toggle (available only if Advanced unlocked) ---------- */
+customToggleBtn.addEventListener('click', ()=>{
+  // custom mode allowed only when advancedShown (regular advanced) OR adminUnlocked (UAdmin)
+  if(!(advancedShown || adminUnlocked)){
+    alert('Advanced features are locked. Unlock via 3-dots → Advanced Mode first.');
+    return;
+  }
+  customMode = !customMode;
+  customToggleBtn.textContent = `⚙ Custom Controls: ${customMode ? 'ON' : 'OFF'}`;
+  controls.classList.toggle('show', customMode);
+  // if admin unlocked, show extra admin controls in controls row
+  refreshControlsRow();
+});
+
+/* save & reset layout */
+saveBtn.addEventListener('click', ()=>{
+  const nodes = Array.from(area.querySelectorAll('.btn'));
+  const cfg = nodes.map(n=>({
+    id: n.id,
+    label: n.textContent,
+    x: parseInt(n.style.left || n.dataset.posX || 0,10),
+    y: parseInt(n.style.top || n.dataset.posY || 0,10),
+    cls: n.dataset.role || ''
+  }));
+  localStorage.setItem('ua_layout', JSON.stringify(cfg));
+  customMode = false;
+  customToggleBtn.textContent = '⚙ Custom Controls: OFF';
+  controls.classList.remove('show');
+  refreshControlsRow();
+  alert('Layout saved — Custom Controls OFF');
+});
+resetBtn.addEventListener('click', ()=>{
+  if(!confirm('Reset layout to default?')) return;
+  localStorage.removeItem('ua_layout');
+  buildButtons();
+});
+
+/* ---------- Menus: History / Themes / Help / Feedback ---------- */
+historyBtn.addEventListener('click', ()=>{
+  const list = historyArr.length ? historyArr.map(h=>`<div style="margin:6px 0">${esc(h)}</div>`).join('') : '<div style="color:#777">No history yet</div>';
+  showPopup(`<h3>History</h3><div style="max-height:300px;overflow:auto">${list}</div><div style="display:flex;gap:8px;margin-top:8px"><button onclick="clearHistory();closePopup()">Clear History</button><button onclick="closePopup()">Close</button></div>`);
+  showMenu(false);
+});
+function clearHistory(){ historyArr=[]; localStorage.removeItem('ua_history'); alert('History cleared'); }
+
+themesBtn.addEventListener('click', ()=> {
+  const html = `<h3>Themes</h3>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button onclick="setTheme('theme-default')">Default</button>
+    <button onclick="setTheme('theme-hacker')">Hacker</button>
+    <button onclick="setTheme('theme-iphone')">iPhone</button>
+    <button onclick="setTheme('theme-glass')">Glass</button>
+    <button onclick="setTheme('theme-neon')">Neon</button>
+    <button onclick="setTheme('theme-minecraft')">Minecraft</button>
+    <button onclick="setTheme('theme-future')">Futuristic</button>
+  </div>
+  <button onclick="closePopup()" style="margin-top:8px">Close</button>`;
+  showPopup(html);
+  showMenu(false);
+});
+feedbackBtn.addEventListener('click', ()=> {
+  window.location.href = 'mailto:ultraumargamerz@gmail.com?subject=UA%20Calculator%20Feedback';
+  showMenu(false);
+});
+
+/* HELP popup with Chat (English essay) */
+helpBtn.addEventListener('click', ()=> {
+  const helpHtml = `<h3>Help — UA Calculator (Basic → Advanced)</h3>
+  <div style="max-height:200px;overflow:auto">
+  <h4>Basic</h4>
+  <p>This calculator supports standard arithmetic: addition (+), subtraction (−), multiplication (×), division (÷), percentage (%), decimal point, clear (AC) and backspace (⌫). Use the numeric buttons or your keyboard. Press Enter to evaluate.</p>
+  <h4>Intermediate</h4>
+  <p>Use the Currency Converter (needs internet) for live exchange rates. Use the Unit Converter for Length, Weight, Temperature, Volume, Speed, Area and Time conversions. History stores past calculations locally.</p>
+  <h4>Advanced</h4>
+  <p>Advanced mode provides scientific functions: factorial (!), trig (sin, cos, tan), logs (ln, log), power (^) and constants like e. Advanced mode must be unlocked (one-time) to reveal advanced buttons; once unlocked you can toggle it on/off easily.</p>
+  <h4>Custom Controls</h4>
+  <p>Turning on Custom Controls lets you drag and reposition buttons inside the calculator. Click Save Layout to save positions. Click Reset Layout to return to defaults.</p>
+  </div>
+
+  <div style="margin-top:8px"><strong>Chat (Support & Codes)</strong></div>
+  <div class="chat-box" id="chatBox"></div>
+  <div class="chat-input">
+    <textarea id="chatMsg" placeholder="Type Here"></textarea>
+    <button id="chatSend">Send</button>
+  </div>
+  <div class="small-note">Note: Use chat for support. Secret codes may unlock admin features (hidden).</div>
+  <div style="margin-top:8px"><button onclick="closePopup()">Close</button></div>`;
+  showPopup(helpHtml);
+  initChat(); showMenu(false);
+});
+
+/* ---------- Advanced entry popup (one-time password via gplinks) ---------- */
+advancedEntryBtn.addEventListener('click', ()=>{
+  const unlocked = localStorage.getItem('ua_unlocked') === '1';
+  if(unlocked){
+    advancedShown = !advancedShown; updateAdvancedVisibility(); showMenu(false);
+    alert('Advanced toggled: ' + (advancedShown? 'ON':'OFF'));
+    return;
+  }
+  const html = `<h3>Unlock Advanced Mode</h3>
+    <p>To unlock advanced features, enter the password.<br>If you don't have it, click <strong>Find Password</strong>.</p>
+    <input id="advPass" type="text" placeholder="Password" />
+    <div class="row" style="margin-top:8px">
+      <button id="checkPass">Unlock</button>
+      <button id="findPass" style="background:#ddd;color:#111">Find Password</button>
+    </div>
+    <div class="small-note" style="margin-top:8px"><strong>Benefits:</strong><br>- Add New calculation buttons<br>- Chat (support)<br>- Custom Theme & Custom Controls</div>
+    <div style="margin-top:10px"><button onclick="closePopup()">Close</button></div>`;
+  showPopup(html);
+  document.getElementById('findPass').addEventListener('click', ()=> window.open(GPLINK,'_blank'));
+  document.getElementById('checkPass').addEventListener('click', ()=>{
+    const v = document.getElementById('advPass').value.trim();
+    if(v === ADV_PASS){
+      localStorage.setItem('ua_unlocked','1');
+      unlockedAdvanced = true;
+      advancedShown = true;
+      updateAdvancedVisibility();
+      alert('Advanced unlocked — saved');
+      closePopup();
+      showMenu(false);
+    } else alert('Incorrect password.');
+  });
+});
+
+/* ---------- popup helpers ---------- */
+function showPopup(html){ popupContent.innerHTML = html; overlay.style.display = 'flex'; }
+function closePopup(){ overlay.style.display='none'; popupContent.innerHTML=''; }
+function showMenu(toggle=true){ menu.style.display = toggle ? 'block' : 'none'; }
+menuBtn.addEventListener('click', ()=> showMenu(menu.style.display!=='block') );
+window.addEventListener('click',(ev)=>{ if(!ev.target.closest('#menu') && !ev.target.closest('#menuBtn')) menu.style.display='none'; });
+
+/* ---------- Themes ---------- */
+function setTheme(name){
+  document.documentElement.className = '';
+  if(name && name!=='theme-default') document.documentElement.classList.add(name);
+  localStorage.setItem('ua_theme', name);
+  closePopup();
+  buildButtons();
+}
+
+/* ---------- Currency ---------- */
+currencyBtn.addEventListener('click', ()=>{ currencyOverlay.style.display='flex'; loadCurrencies(); showMenu(false); });
+closeCur.addEventListener('click', ()=> { currencyOverlay.style.display='none'; curRes.textContent=''; });
+async function loadCurrencies(){
+  try{
+    const r = await fetch(API_URL);
+    const data = await r.json();
+    const rates = data.conversion_rates;
+    fromCur.innerHTML=''; toCur.innerHTML='';
+    Object.keys(rates).forEach(c=>{
+      const o1=document.createElement('option'); o1.value=c; o1.textContent=c; fromCur.appendChild(o1);
+      const o2=document.createElement('option'); o2.value=c; o2.textContent=c; toCur.appendChild(o2);
+    });
+    fromCur.value='USD'; toCur.value='PKR';
+  }catch(e){ curRes.textContent = 'Currency load failed'; }
+}
+convBtn.addEventListener('click', ()=> {
+  const amount = Number(curAmount.value);
+  const from = fromCur.value; const to = toCur.value;
+  if(!amount || !from || !to) { curRes.textContent = 'Enter amount'; return; }
+  fetch(API_URL).then(r=>r.json()).then(data=>{
+    const rates = data.conversion_rates;
+    const usd = amount / rates[from];
+    const conv = usd * rates[to];
+    curRes.textContent = `${amount} ${from} = ${conv.toFixed(4)} ${to}`;
+  }).catch(()=> curRes.textContent = 'Convert failed');
+});
+
+/* ---------- Unit converter ---------- */
+const units = {
+  length: {
+    base: 'm',
+    list: { m:1, km:1000, cm:0.01, mm:0.001, in:0.0254, ft:0.3048, yd:0.9144, mi:1609.344 },
+    names: {m:'Meter', km:'Kilometer', cm:'Centimeter', mm:'Millimeter', in:'Inch', ft:'Foot', yd:'Yard', mi:'Mile'}
+  },
+  weight: {
+    base: 'kg',
+    list: {kg:1, g:0.001, mg:0.000001, lb:0.45359237, oz:0.0283495231, ton:1000},
+    names: {kg:'Kilogram', g:'Gram', mg:'Milligram', lb:'Pound', oz:'Ounce', ton:'Metric ton'}
+  },
+  temperature: {
+    list: ['C','F','K'],
+    names: {C:'Celsius', F:'Fahrenheit', K:'Kelvin'}
+  },
+  volume: {
+    base:'l',
+    list:{l:1, ml:0.001, m3:1000, cup:0.24, pint:0.473176, gal:3.78541},
+    names:{l:'Liter', ml:'Milliliter', m3:'Cubic meter', cup:'Cup', pint:'Pint', gal:'Gallon'}
+  },
+  speed: {
+    base:'m/s',
+    list:{'m/s':1, 'km/h':0.2777777778, 'mph':0.44704, 'knot':0.514444},
+    names:{'m/s':'m/s','km/h':'km/h','mph':'mph','knot':'knot'}
+  },
+  area: {
+    base:'m2',
+    list:{'m2':1,'cm2':0.0001,'km2':1000000,'acre':4046.8564224,'ha':10000},
+    names:{'m2':'m²','cm2':'cm²','km2':'km²','acre':'Acre','ha':'Hectare'}
+  },
+  time: {
+    base:'s',
+    list:{s:1, min:60, hr:3600, day:86400},
+    names:{s:'Second', min:'Minute', hr:'Hour', day:'Day'}
+  }
+};
+function populateUnitSelects(category){
+  fromUnit.innerHTML=''; toUnit.innerHTML='';
+  if(category==='temperature'){
+    units.temperature.list.forEach(k=>{
+      const o1=document.createElement('option'); o1.value=k; o1.textContent = units.temperature.names[k]; fromUnit.appendChild(o1);
+      const o2=document.createElement('option'); o2.value=k; o2.textContent = units.temperature.names[k]; toUnit.appendChild(o2);
+    });
+  } else {
+    const list = units[category].list;
+    Object.keys(list).forEach(k=>{
+      const o1=document.createElement('option'); o1.value=k; o1.textContent = units[category].names[k] || k; fromUnit.appendChild(o1);
+      const o2=document.createElement('option'); o2.value=k; o2.textContent = units[category].names[k] || k; toUnit.appendChild(o2);
+    });
+  }
+  fromUnit.value = fromUnit.options[0] ? fromUnit.options[0].value : '';
+  toUnit.value = fromUnit.value;
+}
+unitCategory.addEventListener('change', ()=> populateUnitSelects(unitCategory.value));
+closeUnit.addEventListener('click', ()=> { unitOverlay.style.display='none'; unitRes.textContent=''; });
+unitBtn.addEventListener('click', ()=> { unitOverlay.style.display='flex'; populateUnitSelects(unitCategory.value); showMenu(false); });
+
+unitConvBtn.addEventListener('click', ()=>{
+  const cat = unitCategory.value;
+  const a = Number(unitAmount.value);
+  const from = fromUnit.value;
+  const to = toUnit.value;
+  if(isNaN(a) || from==='' || to===''){ unitRes.textContent = 'Enter valid values'; return; }
+  try{
+    let result = 0;
+    if(cat==='temperature'){
+      if(from==='C' && to==='F') result = a*9/5+32;
+      else if(from==='F' && to==='C') result = (a-32)*5/9;
+      else if(from==='C' && to==='K') result = a+273.15;
+      else if(from==='K' && to==='C') result = a-273.15;
+      else if(from==='F' && to==='K') result = (a-32)*5/9 + 273.15;
+      else if(from==='K' && to==='F') result = (a-273.15)*9/5 + 32;
+      else result = a;
+    } else {
+      const cfg = units[cat];
+      const base = cfg.list[from];
+      const toBase = cfg.list[to];
+      const inBase = a * base;
+      result = inBase / toBase;
+    }
+    unitRes.textContent = `${a} ${from} = ${Number(result.toFixed(8))} ${to}`;
+  }catch(e){ unitRes.textContent = 'Conversion error'; }
+});
+
+/* ---------- Advanced toggle and advanced visibility ---------- */
+toggleAdvBtn.addEventListener('click', ()=>{
+  const unlocked = localStorage.getItem('ua_unlocked') === '1';
+  if(!unlocked && !adminUnlocked){
+    alert('Advanced features are locked. Use 3-dots → Advanced Mode to unlock (one-time).');
+    return;
+  }
+  advancedShown = !advancedShown;
+  updateAdvancedVisibility();
+});
+function updateAdvancedVisibility(){
+  const advNodes = Array.from(area.querySelectorAll('.btn')).filter(b=> b.dataset.role==='adv');
+  advNodes.forEach(n=> n.style.display = advancedShown ? 'flex' : 'none');
+}
+
+/* ---------- utils ---------- */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* ---------- Chat (help) + secret admin codes ---------- */
+function initChat(){
+  const chatBox = document.getElementById('chatBox');
+  const chatSend = document.getElementById('chatSend');
+  const chatMsg = document.getElementById('chatMsg');
+  if(!chatBox) return;
+  chatBox.innerHTML = '';
+  const stored = JSON.parse(sessionStorage.getItem('ua_chat')||'[]');
+  stored.forEach(m=>{
+    const div = document.createElement('div'); div.innerHTML = `<div style="font-size:13px"><strong>${esc(m.from)}:</strong> ${esc(m.msg)}</div>`; chatBox.appendChild(div);
+  });
+  chatBox.scrollTop = chatBox.scrollHeight;
+  chatSend.onclick = ()=> sendChatMessage();
+  chatMsg.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' && !ev.shiftKey){ ev.preventDefault(); sendChatMessage(); }});
+  function sendChatMessage(){
+    const txt = chatMsg.value.trim();
+    if(!txt) return;
+    const entry = {from:'You', msg:txt, time:Date.now()};
+    stored.push(entry);
+    sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const div = document.createElement('div'); div.innerHTML = `<div style="font-size:13px"><strong>You:</strong> ${esc(txt)}</div>`; chatBox.appendChild(div);
+    chatMsg.value=''; chatBox.scrollTop = chatBox.scrollHeight;
+    // handle secret codes (exact match required)
+    handleChatCode(txt.trim(), chatBox, stored);
+  }
+}
+
+/* handle chat codes for Ultra Admin */
+function handleChatCode(msg, chatBox, stored){
+  // if UAdmin on/off code
+  const lower = msg;
+  if(lower === UADMIN_CODE){
+    adminUnlocked = true;
+    localStorage.setItem('ua_admin','1');
+    // add message from support
+    const reply = {from:'System', msg:'Admin Mode successfully unlocked', time:Date.now()};
+    stored.push(reply); sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const d = document.createElement('div'); d.innerHTML = `<div style="font-size:13px;color:green"><strong>System:</strong> Admin Mode successfully unlocked ✅</div>`; chatBox.appendChild(d);
+    // show benefits list
+    const benefits = [
+      'Add New calculation buttons',
+      'Remove / Rename buttons',
+      'Calculator Edition (code editor)',
+      'Custom Theme (full UI skin / background)',
+      'Full live edit of layouts & button sizes'
+    ];
+    const bdiv = document.createElement('div'); bdiv.innerHTML = `<div style="margin-top:6px"><strong>Benefits:</strong><ul>${benefits.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`;
+    chatBox.appendChild(bdiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+    ensureAdminUI();
+    return;
+  }
+  if(lower.toLowerCase() === (UADMIN_CODE + ' off').toLowerCase()){
+    adminUnlocked = false;
+    localStorage.removeItem('ua_admin');
+    const reply = {from:'System', msg:'Ultra Admin Mode turned OFF', time:Date.now()};
+    stored.push(reply); sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const d = document.createElement('div'); d.innerHTML = `<div style="font-size:13px;color:#a00"><strong>System:</strong> Ultra Admin Mode turned OFF</div>`; chatBox.appendChild(d);
+    removeAdminUI();
+    return;
+  }
+  // handle advanced on/off via chat codes (22002211@@)
+  if(lower === "22002211@@"){
+    localStorage.setItem('ua_unlocked','1');
+    unlockedAdvanced = true;
+    advancedShown = true;
+    updateAdvancedVisibility();
+    const reply = {from:'System', msg:'Advanced Mode unlocked', time:Date.now()};
+    stored.push(reply); sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const d = document.createElement('div'); d.innerHTML = `<div style="font-size:13px;color:green"><strong>System:</strong> Advanced Mode unlocked ✅</div>`; chatBox.appendChild(d);
+    return;
+  }
+  if(lower === "22002211@@ off"){
+    localStorage.removeItem('ua_unlocked');
+    unlockedAdvanced = false;
+    advancedShown = false;
+    updateAdvancedVisibility();
+    const reply = {from:'System', msg:'Advanced Mode turned OFF', time:Date.now()};
+    stored.push(reply); sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const d = document.createElement('div'); d.innerHTML = `<div style="font-size:13px;color:#a00"><strong>System:</strong> Advanced Mode turned OFF</div>`; chatBox.appendChild(d);
+    return;
+  }
+  if(lower === (UADMIN_CODE + ' + 22002211@@ off') || lower === (UADMIN_CODE + ' + 22002211@@ Off').toLowerCase()){
+    // both off
+    adminUnlocked = false; localStorage.removeItem('ua_admin');
+    localStorage.removeItem('ua_unlocked');
+    unlockedAdvanced = false;
+    advancedShown = false;
+    updateAdvancedVisibility();
+    const reply = {from:'System', msg:'All advanced features turned OFF', time:Date.now()};
+    stored.push(reply); sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const d = document.createElement('div'); d.innerHTML = `<div style="font-size:13px;color:#a00"><strong>System:</strong> All advanced features OFF</div>`; chatBox.appendChild(d);
+    removeAdminUI();
+    return;
+  }
+
+  // otherwise simple support echo reply
+  setTimeout(()=> {
+    const reply = {from:'Support', msg:'Thanks — we received: "'+msg+'"', time:Date.now()};
+    stored.push(reply); sessionStorage.setItem('ua_chat', JSON.stringify(stored));
+    const d2 = document.createElement('div'); d2.innerHTML = `<div style="font-size:13px;color:#333"><strong>Support:</strong> ${esc(reply.msg)}</div>`; chatBox.appendChild(d2);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  },600);
+}
+
+/* ---------- Admin UI (when adminUnlocked) ---------- */
+function ensureAdminUI(){
+  // ensure Calculator Edition top button visible (only once). Add new button to topbar if not exist
+  if(document.getElementById('calcEditBtn')) return;
+  const tb = document.querySelector('.topbar > div:last-child');
+  if(!tb) return;
+  const editBtn = document.createElement('button');
+  editBtn.id = 'calcEditBtn';
+  editBtn.textContent = 'Calculator Edition';
+  editBtn.style.marginLeft = '8px';
+  editBtn.style.padding = '6px 8px';
+  editBtn.style.borderRadius = '8px';
+  editBtn.style.border = 'none';
+  editBtn.style.cursor = 'pointer';
+  editBtn.style.background = 'linear-gradient(90deg,var(--accent),#5ad3ff)';
+  editBtn.style.color = '#fff';
+  editBtn.addEventListener('click', openCodeEditor);
+  tb.appendChild(editBtn);
+
+  // add admin controls into controls row
+  refreshControlsRow();
+}
+
+function removeAdminUI(){
+  const b = document.getElementById('calcEditBtn');
+  if(b && b.parentElement) b.parentElement.removeChild(b);
+  refreshControlsRow();
+}
+
+/* refresh controls row to include admin buttons if adminUnlocked & customMode */
+function refreshControlsRow(){
+  // remove existing admin buttons first
+  Array.from(controls.querySelectorAll('.control-add, .control-remove, .control-rename, .control-edit')).forEach(n=>n.remove());
+  if(adminUnlocked && customMode){
+    // add Add Button
+    const add = document.createElement('button'); add.className='control-add'; add.textContent='Add Button';
+    add.onclick = ()=> addNewButtonPrompt();
+    controls.appendChild(add);
+    // Remove Button
+    const rem = document.createElement('button'); rem.className='control-remove'; rem.textContent='Remove Button';
+    rem.onclick = ()=> removeButtonPrompt();
+    controls.appendChild(rem);
+    // Rename Button
+    const rn = document.createElement('button'); rn.className='control-rename'; rn.textContent='Rename Button';
+    rn.onclick = ()=> renameButtonPrompt();
+    controls.appendChild(rn);
+    // Code Edit quick
+    const ed = document.createElement('button'); ed.className='control-edit'; ed.textContent='Open Editor';
+    ed.onclick = ()=> openCodeEditor();
+    controls.appendChild(ed);
+  }
+}
+
+/* add new button prompt (admin) */
+function addNewButtonPrompt(){
+  const html = `<h3>Add New Button</h3>
+    <div class="row"><input id="newId" placeholder="Button id (unique)" /></div>
+    <div class="row" style="margin-top:8px"><input id="newLabel" placeholder="Label (text)" /></div>
+    <div class="row" style="margin-top:8px">
+      <input id="newX" type="number" placeholder="X (px)" />
+      <input id="newY" type="number" placeholder="Y (px)" />
+    </div>
+    <div class="row" style="margin-top:8px">
+      <select id="newCls"><option value="">normal</option><option value="operator">operator</option><option value="clear">clear</option><option value="equal">equal</option><option value="adv">adv</option></select>
+    </div>
+    <div style="margin-top:10px"><button id="doAdd">Add</button><button onclick="closePopup()" style="margin-left:8px">Cancel</button></div>`;
+  showPopup(html);
+  document.getElementById('doAdd').addEventListener('click', ()=>{
+    const id = document.getElementById('newId').value.trim();
+    const label = document.getElementById('newLabel').value.trim();
+    const x = parseInt(document.getElementById('newX').value||0,10);
+    const y = parseInt(document.getElementById('newY').value||0,10);
+    const cls = document.getElementById('newCls').value;
+    if(!id || !label){ alert('Enter id and label'); return; }
+    // prevent duplicate id
+    if(document.getElementById(id)){ alert('Id already exists'); return; }
+    // create button element
+    const btn = document.createElement('button'); btn.className='btn';
+    if(cls) btn.classList.add(cls);
+    btn.id = id; btn.textContent = label;
+    btn.style.left = x + 'px'; btn.style.top = y + 'px';
+    btn.dataset.role = cls || '';
+    btn.dataset.posX = x; btn.dataset.posY = y;
+    btn.addEventListener('pointerdown', onPointerDown);
+    btn.addEventListener('click', onButtonClick);
+    area.appendChild(btn);
+    refreshControlsRow();
+    closePopup();
+  });
+}
+
+/* remove button prompt (admin) */
+function removeButtonPrompt(){
+  const ids = Array.from(area.querySelectorAll('.btn')).map(b=>b.id).join(', ');
+  const html = `<h3>Remove Button</h3>
+    <div style="font-size:13px;color:#666">Existing IDs: ${esc(ids)}</div>
+    <div class="row" style="margin-top:8px"><input id="remId" placeholder="Enter id to remove" /></div>
+    <div style="margin-top:10px"><button id="doRem" style="background:#e67e22;color:#fff">Remove</button><button onclick="closePopup()" style="margin-left:8px">Cancel</button></div>`;
+  showPopup(html);
+  document.getElementById('doRem').addEventListener('click', ()=>{
+    const id = document.getElementById('remId').value.trim();
+    if(!id || !document.getElementById(id)){ alert('Invalid id'); return; }
+    const el = document.getElementById(id);
+    el.parentElement.removeChild(el);
+    closePopup();
+  });
+}
+
+/* rename button prompt (admin) */
+function renameButtonPrompt(){
+  const html = `<h3>Rename Button</h3>
+    <div class="row"><input id="rId" placeholder="Button id" /></div>
+    <div class="row" style="margin-top:8px"><input id="rLabel" placeholder="New label text" /></div>
+    <div style="margin-top:10px"><button id="doRn" style="background:#6c5ce7;color:#fff">Rename</button><button onclick="closePopup()" style="margin-left:8px">Cancel</button></div>`;
+  showPopup(html);
+  document.getElementById('doRn').addEventListener('click', ()=>{
+    const id = document.getElementById('rId').value.trim();
+    const newL = document.getElementById('rLabel').value.trim();
+    if(!id || !newL){ alert('Enter id & new label'); return; }
+    const el = document.getElementById(id);
+    if(!el){ alert('Id not found'); return; }
+    el.textContent = newL;
+    closePopup();
+  });
+}
+
+/* ---------- Calculator Edition (code editor) for admin ---------- */
+function openCodeEditor(){
+  if(!adminUnlocked){ alert('Ultra Admin required'); return; }
+  // collect current layout JSON
+  const nodes = Array.from(area.querySelectorAll('.btn'));
+  const cfg = nodes.map(n=>({
+    id: n.id,
+    label: n.textContent,
+    x: parseInt(n.style.left || n.dataset.posX || 0,10),
+    y: parseInt(n.style.top || n.dataset.posY || 0,10),
+    cls: n.dataset.role || ''
+  }));
+  const html = `<h3>Calculator Edition (Layout JSON)</h3>
+    <textarea id="codeArea" style="height:260px;width:100%;padding:8px;border:1px solid #ddd">${JSON.stringify(cfg,null,2)}</textarea>
+    <div style="display:flex;gap:8px;margin-top:8px"><button id="applyCode" style="background:#2b90d9;color:#fff">Apply</button><button id="saveCode" style="background:#34a853;color:#fff">Save & Apply</button><button onclick="closePopup()" style="margin-left:auto">Close</button></div>
+    <div style="margin-top:8px;font-size:12px;color:#666">Edit the JSON to change positions/labels/classes. Use Save & Apply to persist to localStorage.</div>`;
+  showPopup(html);
+  document.getElementById('applyCode').addEventListener('click', ()=>{
+    try{
+      const txt = document.getElementById('codeArea').value;
+      const parsed = JSON.parse(txt);
+      if(!Array.isArray(parsed)) throw new Error('JSON must be an array');
+      // apply live (not save)
+      localStorage.setItem('ua_layout_temp', JSON.stringify(parsed));
+      // create buttons from parsed but not save (overwrite display only)
+      localStorage.setItem('ua_layout_temp', JSON.stringify(parsed));
+      // apply by writing to ua_layout_temp and rebuild reading from it
+      localStorage.setItem('ua_layout_tmp_apply', JSON.stringify(parsed));
+      // temporarily set ua_layout to parsed and rebuild, but we avoid overwriting saved unless "Save & Apply"
+      localStorage.setItem('ua_layout_preview', JSON.stringify(parsed));
+      applyPreviewLayout(parsed);
+      alert('Preview applied. Use Save & Apply to permanently save.');
+    }catch(err){ alert('Invalid JSON: '+err.message); }
+  });
+  document.getElementById('saveCode').addEventListener('click', ()=>{
+    try{
+      const txt = document.getElementById('codeArea').value;
+      const parsed = JSON.parse(txt);
+      if(!Array.isArray(parsed)) throw new Error('JSON must be an array');
+      localStorage.setItem('ua_layout', JSON.stringify(parsed));
+      buildButtons();
+      closePopup();
+      alert('Layout saved and applied.');
+    }catch(err){ alert('Invalid JSON: '+err.message); }
+  });
+}
+
+/* apply preview layout */
+function applyPreviewLayout(parsed){
+  // remove all current and render parsed
+  area.innerHTML = '';
+  parsed.forEach(b=>{
+    const btn = document.createElement('button');
+    btn.className = 'btn';
+    if(b.cls) btn.classList.add(b.cls);
+    btn.id = b.id;
+    btn.textContent = b.label;
+    btn.style.left = (b.x)+'px';
+    btn.style.top = (b.y)+'px';
+    btn.dataset.role = b.cls || '';
+    btn.dataset.posX = b.x;
+    btn.dataset.posY = b.y;
+    btn.addEventListener('pointerdown', onPointerDown);
+    btn.addEventListener('click', onButtonClick);
+    area.appendChild(btn);
+  });
+  updateAdvancedVisibility();
+  refreshControlsRow();
+}
+
+/* ---------- keyboard support ---------- */
+window.addEventListener('keydown', (e)=>{
+  if(customMode) return;
+  if(e.key==='Enter'){ evaluate(); e.preventDefault(); }
+  else if(e.key==='Backspace'){ let t=display.textContent; display.textContent = t.length>1? t.slice(0,-1): '0'; e.preventDefault(); }
+  else if(/^[0-9.]$/.test(e.key)) { if(display.textContent==='0') display.textContent = e.key; else display.textContent += e.key; }
+  else if(['+','-','*','/','%'].includes(e.key)){ display.textContent += e.key; }
+});
+
+/* ---------- init ---------- */
+(function init(){
+  const th = localStorage.getItem('ua_theme') || 'theme-default';
+  if(th && th!=='theme-default') document.documentElement.classList.add(th);
+  buildButtons();
+  refreshControlsRow();
+  // if advanced unlocked from storage
+  unlockedAdvanced = localStorage.getItem('ua_unlocked') === '1';
+  adminUnlocked = localStorage.getItem('ua_admin') === '1';
+  // if admin unlocked, ensure UI
+  if(adminUnlocked) ensureAdminUI();
+})();
+</script>
+
+</body>
+</html>
